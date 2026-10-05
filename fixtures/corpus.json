@@ -1,0 +1,188 @@
+{
+  "_purpose": "Synthetic fixture corpus, built specifically for this evaluation. Every source document, question, answer, and claim label here is invented and does not describe any real company, drug trial, or event.",
+  "cases": [
+    {
+      "case_id": "c01_direct_units",
+      "category": "directly_supported",
+      "source_document": "Meridian Robotics shipped 4200 warehouse units in the third quarter. The company's revenue for the quarter was 18 million dollars. Meridian's warehouse division added 60 new engineers during the quarter.",
+      "question": "How many warehouse units did Meridian Robotics ship in the third quarter?",
+      "answer": "Meridian Robotics shipped 4200 warehouse units in the third quarter.",
+      "claims": [
+        {"text": "Meridian Robotics shipped 4200 warehouse units in the third quarter", "label": "SUPPORTED"}
+      ]
+    },
+    {
+      "case_id": "c02_direct_trial_length",
+      "category": "directly_supported",
+      "source_document": "The Xantrol trial enrolled 340 patients across 12 clinics. Patients receiving Xantrol reported headaches at a lower rate than the placebo group. The trial ran for 26 weeks.",
+      "question": "How long did the Xantrol trial run?",
+      "answer": "The Xantrol trial ran for 26 weeks.",
+      "claims": [
+        {"text": "the Xantrol trial ran for 26 weeks", "label": "SUPPORTED"}
+      ]
+    },
+    {
+      "case_id": "c03_direct_renovation",
+      "category": "directly_supported",
+      "source_document": "Cedar Valley Library closed its main branch for renovation on March 3. The renovation is expected to add a new children's reading room and two study rooms. The library kept its parking lot open to the public during construction.",
+      "question": "What new spaces will the renovation add to Cedar Valley Library?",
+      "answer": "The renovation will add a new children's reading room and two study rooms.",
+      "claims": [
+        {"text": "the renovation will add a new children's reading room and two study rooms", "label": "SUPPORTED"}
+      ]
+    },
+    {
+      "case_id": "c04_paraphrase_temperature",
+      "category": "paraphrased_supported",
+      "source_document": "Northfield's weather station recorded its coldest morning of the year on January 9, with the temperature dropping to negative 14 degrees.",
+      "question": "What was notable about January 9 at Northfield?",
+      "answer": "January 9 was Northfield's coldest morning of the year, with the temperature falling to negative 14 degrees.",
+      "claims": [
+        {"text": "January 9 was Northfield's coldest morning of the year with the temperature falling to negative 14 degrees", "label": "SUPPORTED"}
+      ]
+    },
+    {
+      "case_id": "c05_paraphrase_commute",
+      "category": "paraphrased_supported",
+      "source_document": "Orchid Transit's new rail line cut the average commute between Elmwood and downtown in half, according to the agency's year-end report.",
+      "question": "What effect did the new rail line have on commute times?",
+      "answer": "The new rail line dramatically reduced how long it takes Elmwood residents to reach downtown.",
+      "claims": [
+        {"text": "the new rail line dramatically reduced how long it takes Elmwood residents to reach downtown", "label": "SUPPORTED"}
+      ]
+    },
+    {
+      "case_id": "c06_paraphrase_solar",
+      "category": "paraphrased_supported",
+      "source_document": "Meridian Robotics' new assembly line runs entirely on solar power collected from panels on the factory roof.",
+      "question": "How is the new assembly line powered?",
+      "answer": "The assembly line draws all of its electricity from rooftop solar cells above the plant.",
+      "claims": [
+        {"text": "the assembly line draws all of its electricity from rooftop solar cells above the plant", "label": "SUPPORTED"}
+      ]
+    },
+    {
+      "case_id": "c07_negation_blood_pressure",
+      "category": "negation_contradicted",
+      "source_document": "The Xantrol trial found that the drug did not increase blood pressure in any participants.",
+      "question": "Did Xantrol increase blood pressure in participants?",
+      "answer": "The trial found that Xantrol increased blood pressure in some participants.",
+      "claims": [
+        {"text": "the trial found that Xantrol increased blood pressure in some participants", "label": "CONTRADICTED"}
+      ]
+    },
+    {
+      "case_id": "c08_negation_late_fees",
+      "category": "negation_contradicted",
+      "source_document": "Cedar Valley Library will not charge late fees after the renovation is complete.",
+      "question": "Will Cedar Valley Library charge late fees after the renovation?",
+      "answer": "Cedar Valley Library will charge late fees after the renovation is complete.",
+      "claims": [
+        {"text": "Cedar Valley Library will charge late fees after the renovation is complete", "label": "CONTRADICTED"}
+      ]
+    },
+    {
+      "case_id": "c09_negation_layoffs",
+      "category": "negation_contradicted",
+      "source_document": "Meridian Robotics has not laid off any employees this year, according to a company spokesperson.",
+      "question": "Has Meridian Robotics laid off employees this year?",
+      "answer": "Meridian Robotics has laid off employees this year.",
+      "claims": [
+        {"text": "Meridian Robotics has laid off employees this year", "label": "CONTRADICTED"}
+      ]
+    },
+    {
+      "case_id": "c10_numeric_snowfall",
+      "category": "numeric_contradicted",
+      "source_document": "Northfield's weather station reported 42 inches of snowfall this winter, a new record for the region.",
+      "question": "How much snowfall did Northfield report this winter?",
+      "answer": "Northfield reported 50 inches of snowfall this winter.",
+      "claims": [
+        {"text": "Northfield reported 50 inches of snowfall this winter", "label": "CONTRADICTED"}
+      ]
+    },
+    {
+      "case_id": "c11_numeric_patients",
+      "category": "numeric_contradicted",
+      "source_document": "The Xantrol trial enrolled 340 patients across 12 clinics.",
+      "question": "How many patients did the Xantrol trial enroll?",
+      "answer": "The Xantrol trial enrolled 300 patients across 12 clinics.",
+      "claims": [
+        {"text": "the Xantrol trial enrolled 300 patients across 12 clinics", "label": "CONTRADICTED"}
+      ]
+    },
+    {
+      "case_id": "c12_numeric_engineers",
+      "category": "numeric_contradicted",
+      "source_document": "Meridian Robotics added 60 new engineers to its warehouse division this quarter.",
+      "question": "How many new engineers did Meridian Robotics add?",
+      "answer": "Meridian Robotics added 90 new engineers to its warehouse division this quarter.",
+      "claims": [
+        {"text": "Meridian Robotics added 90 new engineers to its warehouse division this quarter", "label": "CONTRADICTED"}
+      ]
+    },
+    {
+      "case_id": "c13_unsupported_cafe",
+      "category": "unsupported",
+      "source_document": "Cedar Valley Library closed its main branch for renovation on March 3. The renovation is expected to add a new children's reading room and two study rooms.",
+      "question": "Will the library add a cafe during the renovation?",
+      "answer": "The renovation will include a new cafe on the ground floor.",
+      "claims": [
+        {"text": "the renovation will include a new cafe on the ground floor", "label": "UNSUPPORTED"}
+      ]
+    },
+    {
+      "case_id": "c14_unsupported_heart",
+      "category": "unsupported",
+      "source_document": "The Xantrol trial ran for 26 weeks across 12 clinics.",
+      "question": "Did the Xantrol trial study long-term heart effects?",
+      "answer": "The trial specifically measured long-term heart effects in participants.",
+      "claims": [
+        {"text": "the trial specifically measured long term heart effects in participants", "label": "UNSUPPORTED"}
+      ]
+    },
+    {
+      "case_id": "c15_unsupported_jobs",
+      "category": "unsupported",
+      "source_document": "Orchid Transit's new rail line cut the average commute between Elmwood and downtown in half.",
+      "question": "Did the new rail line create any new jobs?",
+      "answer": "The new rail line created 200 construction jobs in Elmwood.",
+      "claims": [
+        {"text": "the new rail line created 200 construction jobs in Elmwood", "label": "UNSUPPORTED"}
+      ]
+    },
+    {
+      "case_id": "c16_compound_meridian_results",
+      "category": "compound",
+      "source_document": "Meridian Robotics shipped 4200 warehouse units in the third quarter, and the company's revenue for the quarter was 18 million dollars.",
+      "question": "Summarize Meridian Robotics' third-quarter results.",
+      "answer": "Meridian Robotics shipped 4200 warehouse units in the third quarter, and the company's revenue for the quarter was 25 million dollars.",
+      "claims": [
+        {"text": "Meridian Robotics shipped 4200 warehouse units in the third quarter", "label": "SUPPORTED"},
+        {"text": "the company's revenue for the quarter was 25 million dollars", "label": "CONTRADICTED"}
+      ]
+    },
+    {
+      "case_id": "c17_compound_xantrol_facts",
+      "category": "compound",
+      "source_document": "The Xantrol trial enrolled 340 patients across 12 clinics; the drug did not increase blood pressure in any participants.",
+      "question": "What were two key facts about the Xantrol trial?",
+      "answer": "The Xantrol trial enrolled 340 patients across 12 clinics; the drug increased blood pressure in some participants.",
+      "claims": [
+        {"text": "the Xantrol trial enrolled 340 patients across 12 clinics", "label": "SUPPORTED"},
+        {"text": "the drug increased blood pressure in some participants", "label": "CONTRADICTED"}
+      ]
+    },
+    {
+      "case_id": "c18_compound_library_branch",
+      "category": "compound",
+      "source_document": "Cedar Valley Library closed its main branch for renovation on March 3, but its parking lot remained open to the public.",
+      "question": "What happened to the library during renovation?",
+      "answer": "Cedar Valley Library closed its main branch for renovation on March 3, but it also opened a temporary pop-up branch downtown.",
+      "claims": [
+        {"text": "Cedar Valley Library closed its main branch for renovation on March 3", "label": "SUPPORTED"},
+        {"text": "it also opened a temporary pop-up branch downtown", "label": "UNSUPPORTED"}
+      ]
+    }
+  ]
+}

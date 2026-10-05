@@ -1,0 +1,9 @@
+[project]
+name = "hallucination-claim-grounding-eval"
+version = "0.1.0"
+description = "Deterministic claim-support classifier benchmark: scores whether free-text claims are supported, contradicted, or unsupported by a source document, against a synthetic fixture corpus with explicit ground-truth labels."
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
