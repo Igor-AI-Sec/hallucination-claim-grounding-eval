@@ -304,5 +304,79 @@ class TestClassifyClaim(unittest.TestCase):
         self.assertEqual(result.reason, "numeric_entity_unaddressed")
 
 
+class TestNeverAndNoAreNegation(unittest.TestCase):
+    """'never' and 'no' are in the negation vocabulary. These fail if either is removed,
+    and the control cases show the verdict comes from negation handling and
+    not from a lexical mismatch."""
+
+    def test_has_negation_sees_never(self):
+        self.assertTrue(checker.has_negation("The company never charges fees"))
+        self.assertFalse(checker.has_negation("The company always charges fees"))
+
+    def test_never_is_not_a_content_word(self):
+        self.assertEqual(
+            checker.content_words("The company never charges fees"),
+            checker.content_words("The company charges fees"),
+        )
+
+    def test_claim_with_never_contradicts_an_affirmative_source(self):
+        result = checker.classify_claim("The company never charges fees", "The company charges fees.")
+        self.assertEqual(result.label, checker.CONTRADICTED)
+        self.assertEqual(result.reason, "negation_mismatch")
+        self.assertEqual(result.evidence, {"claim_negated": True, "source_clause_negated": False})
+
+    def test_affirmative_claim_contradicts_a_source_with_never(self):
+        result = checker.classify_claim("The company charges fees", "The company never charges fees.")
+        self.assertEqual(result.label, checker.CONTRADICTED)
+        self.assertEqual(result.reason, "negation_mismatch")
+        self.assertEqual(result.evidence, {"claim_negated": False, "source_clause_negated": True})
+
+    def test_control_a_non_negating_word_in_the_same_position_is_supported(self):
+        result = checker.classify_claim("The company always charges fees", "The company charges fees.")
+        self.assertEqual(result.label, checker.SUPPORTED)
+        self.assertEqual(result.reason, "lexical_overlap")
+        control = checker.classify_claim("The company charges fees", "The company always charges fees.")
+        self.assertEqual(control.label, checker.SUPPORTED)
+
+    def test_has_negation_sees_no(self):
+        self.assertTrue(checker.has_negation("The company charges no fees"))
+        self.assertFalse(checker.has_negation("The company charges all fees"))
+
+    def test_no_is_not_a_content_word(self):
+        self.assertEqual(
+            checker.content_words("The company charges no fees"),
+            checker.content_words("The company charges fees"),
+        )
+
+    def test_claim_with_no_contradicts_an_affirmative_source(self):
+        result = checker.classify_claim("The company charges no fees", "The company charges fees.")
+        self.assertEqual(result.label, checker.CONTRADICTED)
+        self.assertEqual(result.reason, "negation_mismatch")
+        self.assertEqual(result.evidence, {"claim_negated": True, "source_clause_negated": False})
+
+    def test_affirmative_claim_contradicts_a_source_with_no(self):
+        result = checker.classify_claim("The company charges fees", "The company charges no fees.")
+        self.assertEqual(result.label, checker.CONTRADICTED)
+        self.assertEqual(result.reason, "negation_mismatch")
+        self.assertEqual(result.evidence, {"claim_negated": False, "source_clause_negated": True})
+
+    def test_control_a_non_negating_word_in_the_same_position_as_no_is_supported(self):
+        result = checker.classify_claim("The company charges some fees", "The company charges fees.")
+        self.assertEqual(result.label, checker.SUPPORTED)
+        self.assertEqual(result.reason, "lexical_overlap")
+        reverse = checker.classify_claim("The company charges fees", "The company charges many fees.")
+        self.assertEqual(reverse.label, checker.SUPPORTED)
+
+    def test_control_no_on_both_sides_agrees(self):
+        result = checker.classify_claim("The company charges no fees", "The company charges no fees.")
+        self.assertEqual(result.label, checker.SUPPORTED)
+        self.assertEqual(result.reason, "lexical_overlap")
+
+    def test_control_never_on_both_sides_agrees(self):
+        result = checker.classify_claim("The company never charges fees", "The company never charges fees.")
+        self.assertEqual(result.label, checker.SUPPORTED)
+        self.assertEqual(result.reason, "lexical_overlap")
+
+
 if __name__ == "__main__":
     unittest.main()

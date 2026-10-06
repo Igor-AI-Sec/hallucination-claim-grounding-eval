@@ -83,12 +83,26 @@ def _signed_number(sign: str, digits: str) -> str:
 _NEGATION_SCOPE_SPLIT_RE = re.compile(r";\s*|\s+but\s+|\s+and\s+")
 
 
+_CURLY_APOSTROPHES = str.maketrans({"’": "'", "‘": "'"})
+# A comma between a digit and exactly three more digits ("4,200", "1,234,567").
+# "12, 200" (comma then space) and "1,2345" are left alone.
+_THOUSANDS_SEPARATOR_RE = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
+
+
+def normalize_text(text: str) -> str:
+    """Format-only normalization applied before tokenizing or reading numbers:
+    curly apostrophes become straight ones ("doesn’t" -> "doesn't") and
+    thousands separators are removed ("4,200" -> "4200"). Nothing else is
+    rewritten."""
+    return _THOUSANDS_SEPARATOR_RE.sub("", (text or "").translate(_CURLY_APOSTROPHES))
+
+
 def tokenize(text: str) -> list[str]:
-    return _TOKEN_RE.findall((text or "").lower())
+    return _TOKEN_RE.findall(normalize_text(text).lower())
 
 
 def extract_numbers(text: str) -> set[str]:
-    return {_signed_number(sign, digits) for sign, digits in _NUMBER_RE.findall(text or "")}
+    return {_signed_number(sign, digits) for sign, digits in _NUMBER_RE.findall(normalize_text(text))}
 
 
 def extract_number_entities(text: str) -> set[tuple[str, str]]:
@@ -115,7 +129,7 @@ def extract_number_entities(text: str) -> set[tuple[str, str]]:
     noun at all."""
     return {
         (_signed_number(sign, digits), _strip_plural_s(word.lower()))
-        for sign, digits, word in _NUMBER_ENTITY_RE.findall(text or "")
+        for sign, digits, word in _NUMBER_ENTITY_RE.findall(normalize_text(text))
         if word.lower() not in STOPWORDS and word.lower() not in NEGATION_TOKENS
     }
 

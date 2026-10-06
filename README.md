@@ -32,10 +32,17 @@ The pipeline has three pieces, all pure Python with no dependencies:
    splits each sentence on a fixed set of clause connectors (`, and `,
    `; `, ` but `) so that a single sentence carrying two facts becomes two
    claims. This is a punctuation rule, not a parser. It won't correctly
-   split every possible compound sentence, and I didn't try to make it.
+   split every possible compound sentence, and it makes no attempt to.
 2. **Checker** (`checker.py`) takes one claim and a source document and
    returns `SUPPORTED`, `CONTRADICTED`, or `UNSUPPORTED`, using three rules
-   applied in order:
+   applied in order. Before any rule runs, text gets two format-only
+   clean-ups: curly apostrophes become straight ones (`doesn’t` reads as
+   `doesn't`) and thousands separators are dropped (`4,200` reads as
+   `4200`). Nothing else is normalized.
+   Overlap below means the share of the claim's content words (stopwords,
+   negation words and digits removed) that appear in the best-matching
+   source clause. Two thresholds apply to it: `SUPPORT_OVERLAP_THRESHOLD`
+   (0.6) and `CONTRADICTION_OVERLAP_THRESHOLD` (0.5).
    - If the claim states a number and the best-matching part of the source
      also states a number for the same fact, and they differ, that's a
      numeric contradiction. If the source's best-matching part never
@@ -47,8 +54,13 @@ The pipeline has three pieces, all pure Python with no dependencies:
      etc.) disagrees with the negation of the best-matching part of the
      source, on a topic they otherwise clearly share, that's a negation
      contradiction.
-   - Otherwise, if enough of the claim's content words show up in some
-     part of the source, it's supported; if not, it's unsupported.
+   - Both contradiction rules (numeric and negation) are gated: they only
+     fire when overlap is at least 0.5. A negation or number mismatch
+     against a clause that shares fewer than half of the claim's content
+     words is treated as a different topic, not a contradiction, and the
+     claim falls through to the last rule.
+   - Otherwise, if the overlap is at least 0.6 the claim is supported; if
+     not, it is unsupported.
    "Best-matching part of the source" means the checker splits the source
    document with the same segmenter and picks whichever resulting clause
    has the highest word overlap with the claim. This matters for sources
@@ -67,7 +79,7 @@ The fixture corpus is held by a small `CorpusStore` class
 out of its `cases()` accessor, so nothing external can mutate the trusted
 ground truth through a returned reference. `tests/test_registry_defensive_copy.py`
 mutates both the object passed in and the object handed back, and checks
-neither move the store's internal state -- a plain list assignment would
+neither move the store's internal state. A plain list assignment would
 look safe under casual testing but still leaves the internal state open
 to exactly this kind of accidental mutation, so it's worth testing
 directly rather than assuming.
@@ -93,9 +105,24 @@ Running `run_evaluation.py` against the fixture corpus gives:
 | **Overall** | **19 / 21** | **0.905** |
 
 Every negation-contradiction and numeric-contradiction case in the corpus
-was caught correctly, and every genuinely unsupported claim was correctly
-flagged as unsupported. Both misses were in the paraphrase category, and
-they're not surprising once you look at them.
+was caught correctly, and every unsupported claim was correctly flagged as
+unsupported. Both misses were in the paraphrase category, and they're not
+surprising once you look at them.
+
+The two 1.000 rows are results on this small, purpose-built corpus. They
+are not evidence that the checker is robust. The contradicted and
+unsupported claims here are fairly direct: the negated or mismatched
+claims differ from the source in an obvious way, and the unsupported
+claims share little vocabulary with their source (the highest overlap
+among them is 0.57, and that one is caught by the numeric rule, not by
+overlap). The corpus has no broad coverage of near-miss claims, such as
+swapping the two parties in a sentence ("Alice hired Bob" against "Bob
+hired Alice"), replacing a word with its antonym ("reduced" against
+"increased"), or changing one content word in an otherwise identical
+sentence. A lexical-overlap checker is expected to label many of those
+`SUPPORTED`, because nearly all of the words still match. The corpus does
+not measure how often that happens, so the accuracy figures say nothing
+about it.
 
 ### The two misses
 
@@ -117,8 +144,8 @@ vs. "above," "factory" vs. "plant." The only words that survive exact
 match are "solar," "assembly," and "line." Overlap came out to 0.33, well
 below threshold, so this was also marked `UNSUPPORTED`.
 
-This is exactly the limitation I expected going in: the checker has no
-notion of synonymy. It doesn't stem words ("increase" and "increased"
+This is the limitation the design predicts: the checker has no notion of
+synonymy. It doesn't stem words ("increase" and "increased"
 don't match each other either; that one didn't happen to flip a verdict
 in this corpus, but it's the same gap), and it has no concept of two
 different phrases meaning the same thing. A third paraphrase case in the
@@ -140,10 +167,11 @@ ground-truth labels stored with these 21 claims. It does not tell you:
   checker doesn't attempt either; it does keyword overlap plus two
   narrow, explicit rules.
 - A false positive/negative rate you could treat as a population
-  estimate. 21 claims is enough to see a pattern (paraphrase is the weak
-  spot, everything else the rules were built for works), not enough to
-  say "this happens X% of the time" about hallucination detection in
-  general.
+  estimate. 21 claims is enough to see that paraphrase is where this
+  checker fails on these fixtures. It is not enough to say how often
+  anything happens, and the corpus is too easy in the other classes to
+  say how the checker behaves on difficult near-miss claims, which the
+  corpus does not include (see the limitations below).
 
 ## Limitations
 
@@ -161,7 +189,10 @@ ground-truth labels stored with these 21 claims. It does not tell you:
 - **The corpus is small and purpose-built for this project.** 18 cases is enough to
   exercise every category at least three times, not enough to be a
   general benchmark. There's no case with more than two claims per
-  answer, no multi-paragraph source document, and no case testing a unit
+  answer, no multi-paragraph source document, no near-miss claims
+  (role swaps, antonyms, one-word substitutions), only one direction of
+  negation mismatch in the fixtures (source negated, claim affirmative;
+  the reverse is covered by unit tests only), and no case testing a unit
   mismatch (e.g. a claim stating "3.5 feet" against a source stating "42
   inches," the same fact, but the checker's numeric check only compares
   digit strings, so it would treat these as unrelated numbers rather than
@@ -210,6 +241,23 @@ ground-truth labels stored with these 21 claims. It does not tell you:
   keep the fixture corpus's own "negative 14 degrees" case from matching
   a claim of plain "14 degrees," but the checker still has no concept of
   units, ranges, or approximate values.
+- **Some number formats are not handled.** Number words ("two", "three")
+  are not read as numbers, so "three study rooms" against "two study
+  rooms" has no numeric mismatch to find and can come back `SUPPORTED`. A
+  hyphenated range such as "10-14" is read as 10 and negative 14, and it
+  does not match "10 to 14". A textual negative such as "minus 14" is
+  read as a plain 14. Thousands separators and curly apostrophes are
+  normalized (see the checker description above), but nothing beyond
+  those two. The comma rule is meant for standard thousands grouping only,
+  a comma followed by exactly three digits. Decimal-comma notation is not
+  specially supported ("3,141" is read as 3141), and neither is malformed
+  grouping ("1,234,56" is read as 1234 and 56).
+- **The contradiction rules are gated at 0.5 overlap, and the corpus
+  cannot tell whether that gate does anything.** Every corpus
+  contradiction has an overlap of at least 0.8, so moving the gate
+  anywhere between 0 and 0.8 gives the same results here. The boundary
+  behaviour is covered by unit tests in `tests/test_thresholds.py`, not
+  by the corpus.
 - **No semantic role or entity-relation matching.** The checker compares
   words, not who is doing what to whom. A claim that swaps one specific
   argument for another in an otherwise near-identical sentence ("The park
@@ -233,7 +281,10 @@ python src/hallucination_claim_grounding_eval/run_evaluation.py
 
 The second command overwrites `results/results.json`. Since everything
 here is deterministic (no randomness, no model calls), re-running it
-should reproduce the exact numbers in this README.
+should reproduce the exact numbers in this README. The test suite checks
+this: `tests/test_evaluation.py` runs the evaluation over the fixture
+corpus, compares the counts above, and compares a fresh run against the
+committed `results/results.json`.
 
 ## Layout
 
@@ -244,7 +295,9 @@ src/hallucination_claim_grounding_eval/
   corpus_store.py     defensive-copy wrapper around the fixture corpus
   run_evaluation.py   loads fixtures, classifies, writes results.json
 fixtures/corpus.json  18 synthetic fixture cases, 21 labeled claims
-tests/                unit tests for each module above
+tests/                unit tests for segmenter, checker and corpus store,
+                      threshold and input-format tests, and end-to-end
+                      tests that run the evaluation (run_evaluation.py)
 results/results.json  output of the last evaluation run
 reports/evaluation_report.md  narrative write-up of the results
 ```
